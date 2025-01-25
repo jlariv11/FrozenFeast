@@ -30,9 +30,31 @@ public class Order : MonoBehaviour
     {
         _orderSegments = new List<GameManager.ItemRarity>();
         int rarityNum = Random.Range(1, 5);
+        GameManager.ItemRarity orderRarity;
+        /*
+         * Rarity Chances:
+         * Common: 40%
+         * Uncommon: 30%
+         * Rare: 15%
+         * Legendary: 15%
+         */
         for (int i = 0; i < rarityNum; i++)
         {
-            GameManager.ItemRarity orderRarity = ((GameManager.ItemRarity[])Enum.GetValues(typeof(GameManager.ItemRarity)))[Random.Range(0, 4)];
+            int randIndex = Random.Range(1, 101);
+            if (randIndex <= 4)
+            {
+                orderRarity = GameManager.ItemRarity.COMMON;
+            }else if (randIndex <= 7)
+            {
+                orderRarity = GameManager.ItemRarity.UNCOMMON;
+            }else if (randIndex <= 85)
+            {
+                orderRarity = GameManager.ItemRarity.RARE;
+            }
+            else
+            {
+                orderRarity = GameManager.ItemRarity.LEGENDARY;
+            }
             transform.GetChild(i).GetComponent<Image>().color = GameManager.GetRarityColor(orderRarity);
             _orderSegments.Add(orderRarity);
         }
