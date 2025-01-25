@@ -41,10 +41,10 @@ public class Order : MonoBehaviour
         for (int i = 0; i < rarityNum; i++)
         {
             int randIndex = Random.Range(1, 101);
-            if (randIndex <= 4)
+            if (randIndex <= 40)
             {
                 orderRarity = GameManager.ItemRarity.COMMON;
-            }else if (randIndex <= 7)
+            }else if (randIndex <= 70)
             {
                 orderRarity = GameManager.ItemRarity.UNCOMMON;
             }else if (randIndex <= 85)
