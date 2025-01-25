@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 using Random = UnityEngine.Random;
 
 public class Item : MonoBehaviour
@@ -116,11 +117,16 @@ public class Item : MonoBehaviour
     // Handle clicking on items
     public void MouseClick(InputAction.CallbackContext ctx)
     {
-        if (ctx.performed)
+        if (ctx.started)
         {
+            Debug.Log("Called");
+            // -2: Click was neither leftButton or number key should never happen
+            // -1: Click was leftButton - needs to find the most urgent order
+            // 1-9: Click was a number key - apply the item to the (1-9)th order
             int orderToSend = -2;
             if (ctx.control.name == "leftButton")
             {
+                Debug.Log("was left button");
                 Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             
                 RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
@@ -134,6 +140,7 @@ public class Item : MonoBehaviour
             }
             else
             {
+                Debug.Log("Was num key: " + ctx.control.name);
                 orderToSend = int.Parse(ctx.control.name) - 1;
             }
 

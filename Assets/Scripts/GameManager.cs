@@ -120,6 +120,7 @@ public class GameManager : MonoBehaviour
         // Find the order with the least amount of time remaining
         Order closestOrder = null;
         float closestTime = float.MaxValue;
+        // Need to find the order with the least time remaining that needs the given item
         if (orderToComplete == -1)
         {
             foreach (Order order in _orders)
@@ -134,6 +135,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        // Make sure the specified order needs the item and if so, apply it
         else
         {
             if (_orders[orderToComplete].GetSegments().Contains(item.GetRarity()))
