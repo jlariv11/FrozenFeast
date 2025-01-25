@@ -50,13 +50,13 @@ public class Item : MonoBehaviour
          * Legendary: 5%
          */
         int randIndex = Random.Range(1, 101);
-        if (randIndex < 51)
+        if (randIndex <= 50)
         {
             _rarity = GameManager.ItemRarity.COMMON;
-        }else if (randIndex < 81)
+        }else if (randIndex <= 80)
         {
             _rarity = GameManager.ItemRarity.UNCOMMON;
-        }else if (randIndex < 96)
+        }else if (randIndex <= 95)
         {
             _rarity = GameManager.ItemRarity.RARE;
         }
