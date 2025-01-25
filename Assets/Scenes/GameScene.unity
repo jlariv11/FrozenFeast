@@ -535,7 +535,7 @@ MonoBehaviour:
   _timerBar: {fileID: 964971983}
   _orderHolder: {fileID: 1851966271}
   _orderPrefab: {fileID: 1417509487702855204, guid: 72a6eea49ba792842ab2935aa67d04db, type: 3}
-  _maxGameTime: 300
+  _maxGameTime: 180
   _maxOrders: 6
 --- !u!4 &403333201
 Transform:
