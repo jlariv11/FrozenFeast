@@ -147,7 +147,7 @@ public class GameManager : MonoBehaviour
         // If found, check if the player can afford the item and attempt to complete the segment
         if (closestOrder != null)
         {
-            if (MoneyManager.canAffordItem?.Invoke(item.GetRarity()) == true)
+            if (MoneyManager.canAffordItem?.Invoke(item.GetRarity()) == true || item.IsStored())
             {
                 closestOrder.CompleteSegment(item.GetRarity(), item.GetID());
                 // Stored items are already paid for, so make sure the player doesn't pay twice

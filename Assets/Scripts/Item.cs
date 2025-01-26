@@ -144,7 +144,7 @@ public class Item : MonoBehaviour
             if (orderToSend != -2)
             {
                 // Check if the player can afford the item, then process the order
-                if (MoneyManager.canAffordItem?.Invoke(_rarity) == true)
+                if (MoneyManager.canAffordItem?.Invoke(_rarity) == true || _isStored)
                 {
                     onSegmentComplete?.Invoke(this, orderToSend);
                 }
