@@ -109,10 +109,8 @@ public class GameStatsManager : MonoBehaviour
     public static float GetTimeBonus(float remainingPercent)
     {
         if (remainingPercent >= 0.75)
-            return 2.0f;
-        if (remainingPercent >= 0.50)
             return 1.5f;
-        if (remainingPercent >= 0.25)
+        if (remainingPercent >= 0.50)
             return 1.25f;
         return 1.0f;
     }

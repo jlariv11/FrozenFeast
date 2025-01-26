@@ -115,32 +115,50 @@ public class GameManager : MonoBehaviour
     }
 
     // Handle the purchasing of items to complete orders
-    private void TryCompleteOrder(Item.ItemInfo itemInfo)
+    private void TryCompleteOrder(Item item, int orderToComplete)
     {
         // Find the order with the least amount of time remaining
         Order closestOrder = null;
         float closestTime = float.MaxValue;
-        foreach(Order order in _orders)
+        // Need to find the order with the least time remaining that needs the given item
+        if (orderToComplete == -1)
         {
-            if (order.GetSegments().Contains(itemInfo.rarity))
+            foreach (Order order in _orders)
             {
-                if (order.GetTimeRemaining() < closestTime)
+                if (order.GetSegments().Contains(item.GetRarity()))
                 {
-                    closestOrder = order;
-                    closestTime = order.GetTimeRemaining();
+                    if (order.GetTimeRemaining() < closestTime)
+                    {
+                        closestOrder = order;
+                        closestTime = order.GetTimeRemaining();
+                    }
                 }
             }
         }
+        // Make sure the specified order needs the item and if so, apply it
+        else
+        {
+            if (_orders[orderToComplete].GetSegments().Contains(item.GetRarity()))
+            {
+                closestOrder = _orders[orderToComplete];
+            }
+        }
+
         // If found, check if the player can afford the item and attempt to complete the segment
         if (closestOrder != null)
         {
-            if (MoneyManager.canAffordItem?.Invoke(itemInfo.rarity) == true)
+            if (MoneyManager.canAffordItem?.Invoke(item.GetRarity()) == true || item.IsStored())
             {
-                closestOrder.CompleteSegment(itemInfo.rarity, itemInfo.itemID);
+                closestOrder.CompleteSegment(item.GetRarity(), item.GetID());
                 // Stored items are already paid for, so make sure the player doesn't pay twice
-                if (!itemInfo.stored)
+                if (!item.IsStored())
                 {
-                    purchaseItem?.Invoke(itemInfo.rarity);
+                    purchaseItem?.Invoke(item.GetRarity());
+                }
+
+                if (_orders.Count == 0)
+                {
+                    CreateOrder();
                 }
             }
         }

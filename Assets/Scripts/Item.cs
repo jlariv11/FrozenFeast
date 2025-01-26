@@ -3,19 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Interactions;
 using Random = UnityEngine.Random;
 
 public class Item : MonoBehaviour
 {
-    public static Action<ItemInfo> onSegmentComplete;
+    public static Action<Item, int> onSegmentComplete;
     public static Action<GameManager.ItemRarity> onStoreItem;
-
-    public struct ItemInfo
-    {
-        public GameManager.ItemRarity rarity { get; set; }
-        public bool stored { get; set; }
-        public int itemID { get; set; }
-    }
     
     private const int MaxStock = 4;
     
@@ -56,13 +50,13 @@ public class Item : MonoBehaviour
          * Legendary: 5%
          */
         int randIndex = Random.Range(1, 101);
-        if (randIndex < 51)
+        if (randIndex <= 50)
         {
             _rarity = GameManager.ItemRarity.COMMON;
-        }else if (randIndex < 81)
+        }else if (randIndex <= 80)
         {
             _rarity = GameManager.ItemRarity.UNCOMMON;
-        }else if (randIndex < 96)
+        }else if (randIndex <= 95)
         {
             _rarity = GameManager.ItemRarity.RARE;
         }
@@ -82,9 +76,24 @@ public class Item : MonoBehaviour
         _renderer.color = GameManager.GetRarityColor(_rarity);
     }
 
+    public GameManager.ItemRarity GetRarity()
+    {
+        return _rarity;
+    }
+
+    public int GetID()
+    {
+        return _itemID;
+    }
+
     private void SetStored(bool value)
     {
         _isStored = value;
+    }
+
+    public bool IsStored()
+    {
+        return _isStored;
     }
 
     // Highlight the item currently hovered by the mouse
@@ -108,24 +117,36 @@ public class Item : MonoBehaviour
     // Handle clicking on items
     public void MouseClick(InputAction.CallbackContext ctx)
     {
-        if (ctx.performed)
+        if (ctx.started)
         {
-            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            
-            RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.down);
-            if (hit)
+            // -2: Click was neither leftButton or number key should never happen
+            // -1: Click was leftButton - needs to find the most urgent order
+            // 1-9: Click was a number key - apply the item to the (1-9)th order
+            int orderToSend = -2;
+            if (ctx.control.name == "leftButton")
             {
-                if (hit.transform.gameObject == this.gameObject)
+                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            
+                RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
+                if (hit)
                 {
-                    ItemInfo ii = new ItemInfo();
-                    ii.rarity = _rarity;
-                    ii.stored = _isStored;
-                    ii.itemID = _itemID;
-                    // Check if the player can afford the item, then process the order
-                    if (MoneyManager.canAffordItem?.Invoke(_rarity) == true)
+                    if (hit.transform.gameObject == this.gameObject)
                     {
-                        onSegmentComplete?.Invoke(ii);
+                        orderToSend = -1;
                     }
+                }
+            }
+            else
+            {
+                orderToSend = int.Parse(ctx.control.name) - 1;
+            }
+
+            if (orderToSend != -2)
+            {
+                // Check if the player can afford the item, then process the order
+                if (MoneyManager.canAffordItem?.Invoke(_rarity) == true || _isStored)
+                {
+                    onSegmentComplete?.Invoke(this, orderToSend);
                 }
             }
         }
