@@ -9,17 +9,15 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
-    public const int ItemCount = 4;
-    
-    public enum ItemRarity
+    public enum ItemType
     {
-        COMMON,
-        UNCOMMON,
-        RARE,
-        LEGENDARY
+        SEAWEED,
+        KRILL,
+        SARDINE,
+        SQUID
     }
     
-    public static Action<ItemRarity> purchaseItem;
+    public static Action<ItemType> purchaseItem;
     public static Action<int> addMoney;
     public static int nextItemIndex = 0;
     
@@ -36,7 +34,17 @@ public class GameManager : MonoBehaviour
     private float _currentGameTime;
     private List<Order> _orders;
     private int _nextOrderIndex;
-    
+    private static Sprite[] _itemSprites;
+
+    private void Awake()
+    {
+        // Load the item sprites when the game starts
+        if (_itemSprites == null)
+        {
+            LoadResources();
+        }
+    }
+
     void Start()
     {
         _currentGameTime = _maxGameTime;
@@ -52,6 +60,16 @@ public class GameManager : MonoBehaviour
         }
         StartCoroutine(CreateOrderPassive());
         StartCoroutine(MoneyGenerationPassive());
+    }
+    
+    private static void LoadResources()
+    {
+        _itemSprites = new Sprite[Enum.GetNames(typeof(ItemType)).Length];
+        // Load the item sprites
+        for (int i = 0; i < _itemSprites.Length; i++)
+        {
+            _itemSprites[i] = Resources.Load<Sprite>("Sprites/" + Enum.GetName(typeof(ItemType), i));
+        }
     }
     
     // Update the game clock and end the game when time is up
@@ -174,21 +192,26 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    // Get the color an item should be based on it's rarity
-    public static Color GetRarityColor(ItemRarity rarity)
+    // Get the sprite an item should be based on it's rarity
+    public static Sprite GetItemSprite(ItemType type)
     {
-        switch (rarity)
+        // Make sure the item sprites are loaded
+        if (_itemSprites == null)
         {
-            case GameManager.ItemRarity.COMMON:
-                return Color.blue;
-            case GameManager.ItemRarity.UNCOMMON:
-                return Color.green;
-            case GameManager.ItemRarity.RARE:
-                return Color.yellow;
-            case GameManager.ItemRarity.LEGENDARY:
-                return Color.magenta;
+            LoadResources();
+        }
+        switch (type)
+        {
+            case ItemType.SEAWEED:
+                return _itemSprites[0];
+            case ItemType.KRILL:
+                return _itemSprites[1];
+            case ItemType.SARDINE:
+                return _itemSprites[2];
+            case ItemType.SQUID:
+                return _itemSprites[3];
             default:
-                return Color.blue;
+                return _itemSprites[0];
         }
     }
 }

@@ -8,7 +8,7 @@ using UnityEngine;
 public class MoneyManager : MonoBehaviour
 {
 
-    public static Func<GameManager.ItemRarity, bool> canAffordItem;
+    public static Func<GameManager.ItemType, bool> canAffordItem;
     public static Func<int, bool> canAffordPurchase;
     public static int[] costRarityTable = { 5, 10, 15, 20 };
     
@@ -32,9 +32,9 @@ public class MoneyManager : MonoBehaviour
     
     // Purchase an Item.
     // Cost is determined by the costRarityTable
-    private void Purchase(GameManager.ItemRarity rarity)
+    private void Purchase(GameManager.ItemType type)
     {
-        int toSpend = costRarityTable[(int)rarity];
+        int toSpend = costRarityTable[(int)type];
         RemoveMoney(toSpend);
     }
     // Add money upon successful order based on the rarities needed to complete and the time remaining
@@ -67,9 +67,9 @@ public class MoneyManager : MonoBehaviour
         return _money >= amount;
     }
     // Check if the player can afford to purchase an Item
-    private bool CanAfford(GameManager.ItemRarity rarity)
+    private bool CanAfford(GameManager.ItemType type)
     {
-        return CanAfford(costRarityTable[(int) rarity]);
+        return CanAfford(costRarityTable[(int) type]);
     }
     
     

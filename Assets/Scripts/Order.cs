@@ -18,9 +18,10 @@ public class Order : MonoBehaviour
 
     private float _currentOrderTime;
 
-    private GameManager.ItemRarity _orderRarity;
-    private List<GameManager.ItemRarity> _orderSegments;
+    private GameManager.ItemType _orderType;
+    private List<GameManager.ItemType> _orderSegments;
     private int _orderSum;
+    private Transform _plate;
 
     private int[] _timesByRarity = { 5, 10, 15, 20};
     public int _orderID { get; set; }
@@ -28,9 +29,10 @@ public class Order : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _orderSegments = new List<GameManager.ItemRarity>();
+        _orderSegments = new List<GameManager.ItemType>();
+        _plate = transform.GetChild(0);
         int rarityNum = Random.Range(1, 5);
-        GameManager.ItemRarity orderRarity;
+        GameManager.ItemType orderType;
         /*
          * Rarity Chances:
          * Common: 40%
@@ -43,25 +45,26 @@ public class Order : MonoBehaviour
             int randIndex = Random.Range(1, 101);
             if (randIndex <= 40)
             {
-                orderRarity = GameManager.ItemRarity.COMMON;
+                orderType = GameManager.ItemType.SEAWEED;
             }else if (randIndex <= 70)
             {
-                orderRarity = GameManager.ItemRarity.UNCOMMON;
+                orderType = GameManager.ItemType.KRILL;
             }else if (randIndex <= 85)
             {
-                orderRarity = GameManager.ItemRarity.RARE;
+                orderType = GameManager.ItemType.SARDINE;
             }
             else
             {
-                orderRarity = GameManager.ItemRarity.LEGENDARY;
+                orderType = GameManager.ItemType.SQUID;
             }
-            transform.GetChild(i).GetComponent<Image>().color = GameManager.GetRarityColor(orderRarity);
-            _orderSegments.Add(orderRarity);
+            _plate.GetChild(i).GetComponent<Image>().sprite = GameManager.GetItemSprite(orderType);
+            _plate.GetChild(i).gameObject.SetActive(true);
+            _orderSegments.Add(orderType);
         }
 
         for (int i = rarityNum; i < 4; i++)
         {
-            transform.GetChild(i).GetComponent<Image>().color = Color.gray;
+            _plate.GetChild(i).gameObject.SetActive(false);
         }
 
         _orderSum = _orderSegments.Select(rarity => MoneyManager.costRarityTable[(int)rarity]).Sum();
@@ -81,7 +84,7 @@ public class Order : MonoBehaviour
         }
     }
 
-    public List<GameManager.ItemRarity> GetSegments()
+    public List<GameManager.ItemType> GetSegments()
     {
         return _orderSegments;
     }
@@ -102,16 +105,16 @@ public class Order : MonoBehaviour
     }
 
     // Remove the appropriate segment from the list and update its color when an order is processed
-    public void CompleteSegment(GameManager.ItemRarity rarity, int completingItem)
+    public void CompleteSegment(GameManager.ItemType type, int completingItem)
     {
-        if (_orderSegments.Remove(rarity))
+        if (_orderSegments.Remove(type))
         {
-            for (int i = 0; i < transform.childCount; i++)
+            for (int i = 0; i < _plate.childCount; i++)
             {
-                Image child = transform.GetChild(i).GetComponent<Image>();
-                if (child.color == GameManager.GetRarityColor(rarity))
+                Image child = _plate.GetChild(i).GetComponent<Image>();
+                if (child.sprite == GameManager.GetItemSprite(type))
                 {
-                    child.color = Color.gray;
+                    child.gameObject.SetActive(false);
                     onSegmentComplete?.Invoke(completingItem);
                     break;
                 }

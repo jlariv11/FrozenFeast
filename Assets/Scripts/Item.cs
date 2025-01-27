@@ -9,13 +9,13 @@ using Random = UnityEngine.Random;
 public class Item : MonoBehaviour
 {
     public static Action<Item, int> onSegmentComplete;
-    public static Action<GameManager.ItemRarity> onStoreItem;
+    public static Action<GameManager.ItemType> onStoreItem;
     
     private const int MaxStock = 4;
     
-    private GameManager.ItemRarity _rarity;
+    private GameManager.ItemType _type;
 
-    private SpriteRenderer _renderer;
+    private SpriteRenderer _itemRenderer;
     private bool _isHovering;
     private bool _isStored;
     private int _itemID;
@@ -52,33 +52,33 @@ public class Item : MonoBehaviour
         int randIndex = Random.Range(1, 101);
         if (randIndex <= 50)
         {
-            _rarity = GameManager.ItemRarity.COMMON;
+            _type = GameManager.ItemType.SEAWEED;
         }else if (randIndex <= 80)
         {
-            _rarity = GameManager.ItemRarity.UNCOMMON;
+            _type = GameManager.ItemType.KRILL;
         }else if (randIndex <= 95)
         {
-            _rarity = GameManager.ItemRarity.RARE;
+            _type = GameManager.ItemType.SARDINE;
         }
         else
         {
-            _rarity = GameManager.ItemRarity.LEGENDARY;
+            _type = GameManager.ItemType.SQUID;
         }
         // Change the color of the item based on the rarity
-        _renderer = GetComponent<SpriteRenderer>();
-        _renderer.color = GameManager.GetRarityColor(_rarity);
+        _itemRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
+        _itemRenderer.sprite = GameManager.GetItemSprite(_type);
     }
 
     // Set the rarity of the item and change its color
-    private void SetRarity(GameManager.ItemRarity rarity)
+    private void SetType(GameManager.ItemType type)
     {
-        _rarity = rarity;
-        _renderer.color = GameManager.GetRarityColor(_rarity);
+        _type = type;
+        _itemRenderer.sprite = GameManager.GetItemSprite(_type);
     }
 
-    public GameManager.ItemRarity GetRarity()
+    public GameManager.ItemType GetRarity()
     {
-        return _rarity;
+        return _type;
     }
 
     public int GetID()
@@ -99,18 +99,18 @@ public class Item : MonoBehaviour
     // Highlight the item currently hovered by the mouse
     private void OnMouseEnter()
     {
-        Color highlighted = _renderer.color;
+        Color highlighted = _itemRenderer.color;
         highlighted.a = 0.8f;
-        _renderer.color = highlighted;
+        _itemRenderer.color = highlighted;
         _isHovering = true;
     }
 
     // Stop highlighting when the mouse leaves
     private void OnMouseExit()
     {
-        Color normal = _renderer.color;
+        Color normal = _itemRenderer.color;
         normal.a = 1.0f;
-        _renderer.color = normal;
+        _itemRenderer.color = normal;
         _isHovering = false;
     }
     
@@ -144,7 +144,7 @@ public class Item : MonoBehaviour
             if (orderToSend != -2)
             {
                 // Check if the player can afford the item, then process the order
-                if (MoneyManager.canAffordItem?.Invoke(_rarity) == true || _isStored)
+                if (MoneyManager.canAffordItem?.Invoke(_type) == true || _isStored)
                 {
                     onSegmentComplete?.Invoke(this, orderToSend);
                 }
@@ -160,15 +160,15 @@ public class Item : MonoBehaviour
             Transform stockHolder = GameObject.Find("Stock").transform.GetChild(1);
             if (stockHolder.childCount < MaxStock)
             {
-                if (MoneyManager.canAffordItem?.Invoke(_rarity) == true)
+                if (MoneyManager.canAffordItem?.Invoke(_type) == true)
                 {
                     // Create a new Item to be put into the stock witht the same rarity as this one
                     // Re-roll the rarity of this item
                     Item stockItem = Instantiate(gameObject, stockHolder).GetComponent<Item>();
-                    stockItem.SetRarity(_rarity);
+                    stockItem.SetType(_type);
                     stockItem.SetStored(true);
                     RollRarity();
-                    onStoreItem?.Invoke(_rarity);
+                    onStoreItem?.Invoke(_type);
                 }
             }
         }
