@@ -112,7 +112,7 @@ public class Order : MonoBehaviour
             for (int i = 0; i < _plate.childCount; i++)
             {
                 Image child = _plate.GetChild(i).GetComponent<Image>();
-                if (child.sprite == GameManager.GetItemSprite(type))
+                if (child.gameObject.activeSelf && child.sprite == GameManager.GetItemSprite(type))
                 {
                     child.gameObject.SetActive(false);
                     onSegmentComplete?.Invoke(completingItem);
