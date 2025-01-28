@@ -143,7 +143,7 @@ public class GameManager : MonoBehaviour
         {
             foreach (Order order in _orders)
             {
-                if (order.GetSegments().Contains(item.GetRarity()))
+                if (order.GetSegments().Contains(item.GetItemType()))
                 {
                     if (order.GetTimeRemaining() < closestTime)
                     {
@@ -156,7 +156,7 @@ public class GameManager : MonoBehaviour
         // Make sure the specified order needs the item and if so, apply it
         else
         {
-            if (_orders[orderToComplete].GetSegments().Contains(item.GetRarity()))
+            if (_orders[orderToComplete].GetSegments().Contains(item.GetItemType()))
             {
                 closestOrder = _orders[orderToComplete];
             }
@@ -165,13 +165,13 @@ public class GameManager : MonoBehaviour
         // If found, check if the player can afford the item and attempt to complete the segment
         if (closestOrder != null)
         {
-            if (MoneyManager.canAffordItem?.Invoke(item.GetRarity()) == true || item.IsStored())
+            if (MoneyManager.canAffordItem?.Invoke(item.GetItemType()) == true || item.IsStored())
             {
-                closestOrder.CompleteSegment(item.GetRarity(), item.GetID());
+                closestOrder.CompleteSegment(item.GetItemType(), item.GetID());
                 // Stored items are already paid for, so make sure the player doesn't pay twice
                 if (!item.IsStored())
                 {
-                    purchaseItem?.Invoke(item.GetRarity());
+                    purchaseItem?.Invoke(item.GetItemType());
                 }
 
                 if (_orders.Count == 0)

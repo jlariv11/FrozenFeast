@@ -76,7 +76,7 @@ public class Item : MonoBehaviour
         _itemRenderer.sprite = GameManager.GetItemSprite(_type);
     }
 
-    public GameManager.ItemType GetRarity()
+    public GameManager.ItemType GetItemType()
     {
         return _type;
     }
