@@ -11,6 +11,7 @@ public class OrderNumberHandler : MonoBehaviour
     {
         // Update all order numbers when an order is created, completed or elapsed
         InitializeOrderNumbers();
+        GameManager.onOrderCreated += InitializeOrderNumbers;
         Order.onOrderElapse += UpdateOrderNumbers;
         Order.onOrderComplete += UpdateOrderNumbers;
     }
