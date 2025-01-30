@@ -12,7 +12,6 @@ public class Order : MonoBehaviour
     public static Action<Order> onOrderElapse;
     public static Action<int> onSegmentComplete;
     public static Action<Order> onOrderComplete;
-    public static Action updateOrderNumber;
 
     [SerializeField] private Image _orderTimerBar;
 
@@ -80,6 +79,7 @@ public class Order : MonoBehaviour
         _maxOrderTime = _orderSegments.Select(rarity => _timesByRarity[(int)rarity] + Random.Range(-3, 4)).Sum();
         _currentOrderTime = _maxOrderTime;
     }
+
     void Update()
     {
         // Update the time an order has been active
@@ -91,11 +91,6 @@ public class Order : MonoBehaviour
             Destroy(gameObject);
             onOrderElapse?.Invoke(this);
         }
-    }
-
-    private void OnDestroy()
-    {
-        updateOrderNumber?.Invoke();
     }
 
     public void SetOrderNumber(int orderNumber)
