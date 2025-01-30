@@ -12,6 +12,7 @@ public class Order : MonoBehaviour
     public static Action<Order> onOrderElapse;
     public static Action<int> onSegmentComplete;
     public static Action<Order> onOrderComplete;
+    public static Action updateOrderNumber;
 
     [SerializeField] private Image _orderTimerBar;
 
@@ -28,12 +29,17 @@ public class Order : MonoBehaviour
     private int[] _timesByRarity = { 5, 10, 15, 20};
     public int _orderID { get; set; }
 
+
+    private void Awake()
+    {
+        _orderNumberText = transform.GetChild(2).GetChild(1).gameObject.GetComponent<TextMeshProUGUI>();
+    }
+    
     // Start is called before the first frame update
     void Start()
     {
         _orderSegments = new List<GameManager.ItemType>();
         _plate = transform.GetChild(0);
-        _orderNumberText = transform.GetChild(2).GetChild(1).gameObject.GetComponent<TextMeshProUGUI>();
         int rarityNum = Random.Range(1, 5);
         GameManager.ItemType orderType;
         /*
@@ -73,11 +79,6 @@ public class Order : MonoBehaviour
         _orderSum = _orderSegments.Select(rarity => MoneyManager.costRarityTable[(int)rarity]).Sum();
         _maxOrderTime = _orderSegments.Select(rarity => _timesByRarity[(int)rarity] + Random.Range(-3, 4)).Sum();
         _currentOrderTime = _maxOrderTime;
-        // Update the order number when instantiated
-        UpdateOrderNumber(this);
-        // Update all order numbers when an order is completed or elapsed
-        onOrderComplete += UpdateOrderNumber;
-        onOrderElapse += UpdateOrderNumber;
     }
     void Update()
     {
@@ -92,22 +93,14 @@ public class Order : MonoBehaviour
         }
     }
 
-    private void UpdateOrderNumber(Order order)
+    private void OnDestroy()
     {
-        // The order that is completed is destroyed so don't try to update it
-        if (GetSegments().Count == 0 || GetTimeRemaining() <= 0)
-        {
-            return;
-        }
-        Transform orderHolder = transform.parent;
-        for (int i = 0; i < orderHolder.childCount; i++)
-        {
-            if (gameObject.Equals(orderHolder.GetChild(i).gameObject))
-            {
-                // Orders are numbered 1-9, not 0-8
-                _orderNumberText.text = (i + 1).ToString();
-            }
-        }
+        updateOrderNumber?.Invoke();
+    }
+
+    public void SetOrderNumber(int orderNumber)
+    {
+        _orderNumberText.text = orderNumber.ToString();
     }
 
     public List<GameManager.ItemType> GetSegments()
@@ -149,8 +142,8 @@ public class Order : MonoBehaviour
         // When there are no more segments the order is completed
         if (_orderSegments.Count == 0)
         {
-            onOrderComplete?.Invoke(this);
             Destroy(gameObject);
+            onOrderComplete?.Invoke(this);
         }
     }
 }

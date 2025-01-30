@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     
     public static Action<ItemType> purchaseItem;
     public static Action<int> addMoney;
+    public static Action onOrderCreated;
     public static int nextItemIndex = 0;
     
     [SerializeField] private TextMeshProUGUI _timerText;
@@ -122,6 +123,7 @@ public class GameManager : MonoBehaviour
             Order order = Instantiate(_orderPrefab, _orderHolder.transform).GetComponent<Order>();
             order._orderID = _nextOrderIndex++;
             _orders.Add(order);
+            onOrderCreated?.Invoke();
         }
     }
     // Format the game time to mins:secs format
