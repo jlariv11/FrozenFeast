@@ -118,7 +118,8 @@ public class Item : MonoBehaviour
     // Handle clicking on items
     public void MouseClick(InputAction.CallbackContext ctx)
     {
-        if (ctx.started)
+        if (!ctx.started) return;
+        if (_isHovering)
         {
             // -2: Click was neither leftButton or number key should never happen
             // -1: Click was leftButton - needs to find the most urgent order
@@ -141,8 +142,7 @@ public class Item : MonoBehaviour
             {
                 orderToSend = int.Parse(ctx.control.name) - 1;
             }
-
-            if (orderToSend != -2)
+            if (orderToSend == -1 || (orderToSend >= 0 && orderToSend < GameManager.MaxOrders))
             {
                 // Check if the player can afford the item, then process the order
                 if (MoneyManager.canAffordItem?.Invoke(_type) == true || _isStored)

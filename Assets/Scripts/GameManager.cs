@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public static Action<int> addMoney;
     public static Action onOrderCreated;
     public static int nextItemIndex = 0;
+    public static int MaxOrders = 6;
     
     [SerializeField] private TextMeshProUGUI _timerText;
 
@@ -30,7 +31,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _orderPrefab;
     
     [SerializeField] private float _maxGameTime = 300; // Seconds
-    [SerializeField] private int _maxOrders = 6;
 
     private float _currentGameTime;
     private List<Order> _orders;
@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour
     // Add an order to the order bar as long as it isn't full
     private void CreateOrder()
     {
-        if (_orders.Count < _maxOrders)
+        if (_orders.Count < MaxOrders)
         {
             Order order = Instantiate(_orderPrefab, _orderHolder.transform).GetComponent<Order>();
             order._orderID = _nextOrderIndex++;
@@ -156,7 +156,7 @@ public class GameManager : MonoBehaviour
             }
         }
         // Make sure the specified order needs the item and if so, apply it
-        else
+        else if(orderToComplete >= 0 && orderToComplete < _orders.Count)
         {
             if (_orders[orderToComplete].GetSegments().Contains(item.GetItemType()))
             {
