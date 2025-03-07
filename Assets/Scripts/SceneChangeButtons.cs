@@ -10,6 +10,16 @@ public class SceneChangeButtons : MonoBehaviour
         SceneManager.LoadScene("TitleScene", LoadSceneMode.Single);
     }
 
+    public void Credits()
+    {
+        SceneManager.LoadScene("CreditsScene", LoadSceneMode.Single);
+    }
+
+    public void Rules()
+    {
+        SceneManager.LoadScene("RulesScene", LoadSceneMode.Single);
+    }
+
     public void PlayAgain()
     {
         SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
