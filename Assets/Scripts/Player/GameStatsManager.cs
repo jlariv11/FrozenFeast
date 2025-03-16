@@ -31,6 +31,7 @@ public class GameStatsManager : MonoBehaviour
             return;
         }
 
+        _smSingleton = this;
         DontDestroyOnLoad(gameObject);
 
         SceneManager.sceneLoaded += HandleSceneChange;

@@ -21,12 +21,17 @@ public class Item : MonoBehaviour
     private int _itemID;
     void Awake()
     {
-        RollRarity();
+        
         Order.onSegmentComplete += RollRarity;
         Order.onSegmentComplete += DestroyStockOnComplete;
         _isHovering = false;
         _isStored = false;
         _itemID = GameManager.nextItemIndex++;
+    }
+
+    private void Start()
+    {
+        RollRarity();
     }
 
     // Make sure the proper item is getting re-rolled
@@ -118,7 +123,7 @@ public class Item : MonoBehaviour
     // Handle clicking on items
     public void MouseClick(InputAction.CallbackContext ctx)
     {
-        if (!ctx.started) return;
+        if (!ctx.started || GameManager.IsPaused()) return;
         if (_isHovering)
         {
             // -2: Click was neither leftButton or number key should never happen
@@ -156,7 +161,7 @@ public class Item : MonoBehaviour
     // Handles moving an item to the stock
     public void StockItem(InputAction.CallbackContext ctx)
     {
-        if (ctx.started && _isHovering)
+        if (ctx.started && _isHovering && !GameManager.IsPaused())
         {
             Transform stockHolder = GameObject.Find("Stock").transform.GetChild(1);
             if (stockHolder.childCount < MaxStock)

@@ -23,11 +23,11 @@ public class GameManager : MonoBehaviour
     public static int nextItemIndex = 0;
     public static int MaxOrders = 6;
     
-    [SerializeField] private TextMeshProUGUI _timerText;
+    private TextMeshProUGUI _timerText;
 
-    [SerializeField] private Image _timerBar;
+     private Image _timerBar;
 
-    [SerializeField] private GameObject _orderHolder;
+    private GameObject _orderHolder;
     [SerializeField] private GameObject _orderPrefab;
     
     [SerializeField] private float _maxGameTime = 300; // Seconds
@@ -36,14 +36,35 @@ public class GameManager : MonoBehaviour
     private List<Order> _orders;
     private int _nextOrderIndex;
     private static Sprite[] _itemSprites;
+    private static GameManager _gmSingleton;
+    private bool _gameStarted;
+    private static bool _paused;
+    private GameObject _pauseMenu;
+
+    private IEnumerator _createOrderPassive;
+    private IEnumerator _createMoneyPassive;
 
     private void Awake()
     {
-        // Load the item sprites when the game starts
-        if (_itemSprites == null)
+        if (_gmSingleton != null && _gmSingleton != this)
         {
-            LoadResources();
+            Destroy(gameObject);
+            return;
         }
+
+        _gmSingleton = this;
+        DontDestroyOnLoad(gameObject);
+        _gameStarted = false;
+        _paused = false;
+        SceneManager.sceneLoaded += (scene, mode) => {
+            if (scene.name == "GameScene")
+            {
+                StartGame();
+            }
+            else
+            {
+                LoadResources();
+            }};
     }
 
     void Start()
@@ -51,6 +72,17 @@ public class GameManager : MonoBehaviour
         _currentGameTime = _maxGameTime;
         _nextOrderIndex = 0;
         _orders = new List<Order>();
+        _createOrderPassive = CreateOrderPassive();
+        _createMoneyPassive = MoneyGenerationPassive();
+    }
+
+    private void StartGame()
+    {
+        GameObject timer = GameObject.Find("Timer");
+        _timerBar = timer.transform.GetChild(0).GetChild(2).gameObject.GetComponent<Image>();
+        _timerText = timer.transform.GetChild(0).GetChild(3).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+        _orderHolder = GameObject.Find("OrderHolder");
+        _pauseMenu = timer.transform.parent.GetChild(6).gameObject;
         Item.onSegmentComplete += TryCompleteOrder;
         Order.onOrderElapse += (order) => _orders.Remove(order);
         Order.onOrderComplete += RemoveAndRenewOrder;
@@ -59,8 +91,9 @@ public class GameManager : MonoBehaviour
         {
             CreateOrder();
         }
-        StartCoroutine(CreateOrderPassive());
-        StartCoroutine(MoneyGenerationPassive());
+        StartCoroutine(_createOrderPassive);
+        StartCoroutine(_createMoneyPassive);
+        _gameStarted = true;
     }
     
     private static void LoadResources()
@@ -76,6 +109,8 @@ public class GameManager : MonoBehaviour
     // Update the game clock and end the game when time is up
     void Update()
     {
+        if (!_gameStarted || _paused)
+            return;
         _currentGameTime -= Time.deltaTime;
         _timerBar.fillAmount = _currentGameTime / _maxGameTime;
         _timerText.text = GameTimeToFormattedString();
@@ -91,8 +126,38 @@ public class GameManager : MonoBehaviour
         Item.onSegmentComplete -= TryCompleteOrder;
         Order.onOrderComplete -= RemoveAndRenewOrder;
         Order.onOrderElapse -= (order) => _orders.Remove(order);
+        _gameStarted = false;
         SceneManager.LoadScene("GameOver", LoadSceneMode.Single);
 
+    }
+
+    public void OnPause()
+    {
+        if (!_gameStarted)
+            return;
+        _paused = !_paused;
+        _pauseMenu.SetActive(_paused);
+        if (_paused)
+        {
+            Item.onSegmentComplete -= TryCompleteOrder;
+            Order.onOrderComplete -= RemoveAndRenewOrder;
+            Order.onOrderElapse -= (order) => _orders.Remove(order);
+            StopCoroutine(_createOrderPassive);
+            StopCoroutine(_createMoneyPassive);
+        }
+        else
+        {
+            Item.onSegmentComplete += TryCompleteOrder;
+            Order.onOrderElapse += (order) => _orders.Remove(order);
+            Order.onOrderComplete += RemoveAndRenewOrder;
+            StartCoroutine(_createOrderPassive);
+            StartCoroutine(_createMoneyPassive);
+        }
+    }
+
+    public static bool IsPaused()
+    {
+        return _paused;
     }
 
     // Passively create new orders every 10 seconds
@@ -197,11 +262,6 @@ public class GameManager : MonoBehaviour
     // Get the sprite an item should be based on it's rarity
     public static Sprite GetItemSprite(ItemType type)
     {
-        // Make sure the item sprites are loaded
-        if (_itemSprites == null)
-        {
-            LoadResources();
-        }
         switch (type)
         {
             case ItemType.SEAWEED:

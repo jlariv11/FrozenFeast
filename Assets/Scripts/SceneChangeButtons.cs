@@ -29,4 +29,9 @@ public class SceneChangeButtons : MonoBehaviour
     {
         Application.Quit();
     }
+
+    public void ContinueGame()
+    {
+        GameObject.Find("GameManager").GetComponent<GameManager>().OnPause();
+    }
 }

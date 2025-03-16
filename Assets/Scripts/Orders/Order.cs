@@ -82,6 +82,8 @@ public class Order : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.IsPaused())
+            return;
         // Update the time an order has been active
         // Update progress bar and delete when time reaches 0
         _currentOrderTime -= Time.deltaTime;
