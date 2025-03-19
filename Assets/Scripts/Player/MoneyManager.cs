@@ -29,7 +29,20 @@ public class MoneyManager : MonoBehaviour
         canAffordPurchase += CanAfford;
 
     }
-    
+
+    private void OnDestroy()
+    {
+        GameManager.purchaseItem -= Purchase;
+        Order.onOrderComplete -= SuccessfulOrder;
+        Refresh.onRefresh -= RemoveMoney;
+        Item.onStoreItem -= Purchase;
+        GameManager.addMoney -= AddMoney;
+
+        canAffordItem -= CanAfford;
+        canAffordPurchase -= CanAfford;
+        _money = _startingMoney;
+    }
+
     // Purchase an Item.
     // Cost is determined by the costRarityTable
     private void Purchase(GameManager.ItemType type)

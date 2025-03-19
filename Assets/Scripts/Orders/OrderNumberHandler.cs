@@ -15,7 +15,14 @@ public class OrderNumberHandler : MonoBehaviour
         Order.onOrderElapse += UpdateOrderNumbers;
         Order.onOrderComplete += UpdateOrderNumbers;
     }
-    
+
+    private void OnDestroy()
+    {
+        GameManager.onOrderCreated -= InitializeOrderNumbers;
+        Order.onOrderElapse -= UpdateOrderNumbers;
+        Order.onOrderComplete -= UpdateOrderNumbers;
+    }
+
 
     private void InitializeOrderNumbers()
     {

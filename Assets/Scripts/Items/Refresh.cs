@@ -12,7 +12,9 @@ public class Refresh : MonoBehaviour
     // Process pressing the R key to refresh the items
     public void RPress(InputAction.CallbackContext ctx)
     {
-        if (ctx.started && !GameManager.IsPaused())
+        if(GameManager.IsPaused())
+            return;
+        if (ctx.started)
         {
             RefreshItems();
         }
@@ -33,7 +35,9 @@ public class Refresh : MonoBehaviour
     // Handle clicking on the refresh button to refresh the items
     public void MouseClick(InputAction.CallbackContext ctx)
     {
-        if (ctx.started && !GameManager.IsPaused())
+        if(GameManager.IsPaused())
+            return;
+        if (ctx.started)
         {
             Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             

@@ -10,13 +10,12 @@ public class GameStatsManager : MonoBehaviour
 {
     public static Action<int> onMoneySpend; 
     public static Action<int> onMoneyEarn;
-    [SerializeField] private TextMeshProUGUI _scoreText;
+    private TextMeshProUGUI _scoreText;
     [SerializeField] private int[] rarityScoreTable = { 100, 200, 300, 400};
     
     private int _score;
     private int _ordersCompleted;
     private int _ordersMissed;
-    private int[] _itemsSubmitted;
     private int _moneySpent;
     private int _moneyEarned;
     
@@ -71,13 +70,29 @@ public class GameStatsManager : MonoBehaviour
         _score = 0;
         _ordersCompleted = 0;
         _ordersMissed = 0;
-        _itemsSubmitted = new int[]{0, 0, 0, 0};
+        _moneyEarned = 0;
+        _moneySpent = 0;
+        
+        // Unsubscribe first to prevent duplicates
+        Order.onOrderComplete -= UpdateScore;
+        Order.onOrderComplete -= UpdateOrdersCompleted;
+        Order.onOrderElapse -= UpdateOrdersMissed;
+        onMoneyEarn -= UpdateMoneyEarned;
+        onMoneySpend -= UpdateMoneySpent;
+        
         Order.onOrderComplete += UpdateScore;
         Order.onOrderComplete += UpdateOrdersCompleted;
         Order.onOrderElapse += UpdateOrdersMissed;
         onMoneyEarn += UpdateMoneyEarned;
         onMoneySpend += UpdateMoneySpent;
+        _scoreText = GameObject.Find("Score").GetComponent<TextMeshProUGUI>();
     }
+    
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= HandleSceneChange;
+    }
+
 
     private void UpdateMoneyEarned(int amt)
     {

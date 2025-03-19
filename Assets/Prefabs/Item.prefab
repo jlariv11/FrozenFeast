@@ -104,6 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbcb5d9822331b14f904e60aae730461, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _itemPrefab: {fileID: 254534337326160354}
 --- !u!61 &-6449435601240877254
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -210,6 +211,10 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 85df6250-abad-47c2-9098-5f50a4654244
     m_ActionName: PlayerActions/Stock[/Keyboard/s]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 78240271-a768-49e3-8cd8-efc59beb4b6b
+    m_ActionName: PlayerActions/Pause[/Keyboard/escape]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: PlayerActions
@@ -225,7 +230,7 @@ GameObject:
   m_Component:
   - component: {fileID: 995506608182701510}
   - component: {fileID: 107431776274286687}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: ItemIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -291,7 +296,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

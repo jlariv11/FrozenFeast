@@ -27,16 +27,10 @@ public class Order : MonoBehaviour
 
     private int[] _timesByRarity = { 5, 10, 15, 20};
     public int _orderID { get; set; }
-
-
-    private void Awake()
+    
+    void Awake()
     {
         _orderNumberText = transform.GetChild(2).GetChild(1).gameObject.GetComponent<TextMeshProUGUI>();
-    }
-    
-    // Start is called before the first frame update
-    void Start()
-    {
         _orderSegments = new List<GameManager.ItemType>();
         _plate = transform.GetChild(0);
         int rarityNum = Random.Range(1, 5);
@@ -82,7 +76,7 @@ public class Order : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.IsPaused())
+        if(GameManager.IsPaused())
             return;
         // Update the time an order has been active
         // Update progress bar and delete when time reaches 0

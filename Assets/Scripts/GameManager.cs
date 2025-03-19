@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -23,48 +24,31 @@ public class GameManager : MonoBehaviour
     public static int nextItemIndex = 0;
     public static int MaxOrders = 6;
     
-    private TextMeshProUGUI _timerText;
+    [SerializeField] private TextMeshProUGUI _timerText;
 
-     private Image _timerBar;
+    [SerializeField] private Image _timerBar;
 
-    private GameObject _orderHolder;
+    [SerializeField] private GameObject _orderHolder;
     [SerializeField] private GameObject _orderPrefab;
     
     [SerializeField] private float _maxGameTime = 300; // Seconds
+    [SerializeField] private Transform _itemHolder;
 
     private float _currentGameTime;
     private List<Order> _orders;
     private int _nextOrderIndex;
     private static Sprite[] _itemSprites;
-    private static GameManager _gmSingleton;
     private bool _gameStarted;
     private static bool _paused;
-    private GameObject _pauseMenu;
+    [SerializeField] private GameObject _pauseMenu;
 
     private IEnumerator _createOrderPassive;
     private IEnumerator _createMoneyPassive;
 
     private void Awake()
     {
-        if (_gmSingleton != null && _gmSingleton != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        _gmSingleton = this;
-        DontDestroyOnLoad(gameObject);
         _gameStarted = false;
         _paused = false;
-        SceneManager.sceneLoaded += (scene, mode) => {
-            if (scene.name == "GameScene")
-            {
-                StartGame();
-            }
-            else
-            {
-                LoadResources();
-            }};
     }
 
     void Start()
@@ -74,29 +58,36 @@ public class GameManager : MonoBehaviour
         _orders = new List<Order>();
         _createOrderPassive = CreateOrderPassive();
         _createMoneyPassive = MoneyGenerationPassive();
+        StartCoroutine(PrepareGame());
     }
 
+    private IEnumerator PrepareGame()
+    {
+        // Make sure assets are loaded before the game starts
+        yield return LoadResources();
+        StartGame();
+    }
     private void StartGame()
     {
-        GameObject timer = GameObject.Find("Timer");
-        _timerBar = timer.transform.GetChild(0).GetChild(2).gameObject.GetComponent<Image>();
-        _timerText = timer.transform.GetChild(0).GetChild(3).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
-        _orderHolder = GameObject.Find("OrderHolder");
-        _pauseMenu = timer.transform.parent.GetChild(6).gameObject;
         Item.onSegmentComplete += TryCompleteOrder;
-        Order.onOrderElapse += (order) => _orders.Remove(order);
+        Order.onOrderElapse += ElapseOrder;
         Order.onOrderComplete += RemoveAndRenewOrder;
         // Create 3 orders for the start of the game
         for (int i = 0; i < 3; i++)
         {
             CreateOrder();
         }
+        // Initialize the items
+        for (int i = 0; i < _itemHolder.childCount; i++)
+        {
+            _itemHolder.GetChild(i).gameObject.GetComponent<Item>().RollRarity();
+        }
         StartCoroutine(_createOrderPassive);
         StartCoroutine(_createMoneyPassive);
         _gameStarted = true;
     }
     
-    private static void LoadResources()
+    private IEnumerator LoadResources()
     {
         _itemSprites = new Sprite[Enum.GetNames(typeof(ItemType)).Length];
         // Load the item sprites
@@ -104,6 +95,8 @@ public class GameManager : MonoBehaviour
         {
             _itemSprites[i] = Resources.Load<Sprite>("Sprites/" + Enum.GetName(typeof(ItemType), i));
         }
+
+        yield return null;
     }
     
     // Update the game clock and end the game when time is up
@@ -119,16 +112,41 @@ public class GameManager : MonoBehaviour
             GameOver();
         }
     }
-
-    // Unsubscribe from game events and load Game Over scene
+    
     private void GameOver()
+    {
+        SceneManager.LoadScene("GameOver", LoadSceneMode.Single);
+    }
+
+
+    // Unsubscribe from all events and reset parameters
+    private void CleanUpGame()
     {
         Item.onSegmentComplete -= TryCompleteOrder;
         Order.onOrderComplete -= RemoveAndRenewOrder;
-        Order.onOrderElapse -= (order) => _orders.Remove(order);
+        Order.onOrderElapse -= ElapseOrder;
         _gameStarted = false;
-        SceneManager.LoadScene("GameOver", LoadSceneMode.Single);
+        nextItemIndex = 0;
+        StopCoroutine(_createOrderPassive);
+        StopCoroutine(_createMoneyPassive);
+        foreach (Order o in _orders)
+        {
+            if (o != null)
+            {
+                Destroy(o.gameObject);
+            }
+        }
+    }
+    
+    // Handle when the player quits during the game or the game ends
+    private void OnDestroy()
+    {
+        CleanUpGame();
+    }
 
+    private void ElapseOrder(Order order)
+    {
+        _orders.Remove(order);
     }
 
     public void OnPause()
@@ -158,6 +176,11 @@ public class GameManager : MonoBehaviour
     public static bool IsPaused()
     {
         return _paused;
+    }
+
+    public bool GameStarted()
+    {
+        return _gameStarted;
     }
 
     // Passively create new orders every 10 seconds

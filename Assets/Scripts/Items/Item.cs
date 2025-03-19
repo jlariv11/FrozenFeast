@@ -17,27 +17,27 @@ public class Item : MonoBehaviour
 
     private SpriteRenderer _itemRenderer;
     private bool _isHovering;
-    private bool _isStored;
     private int _itemID;
-    void Awake()
-    {
-        
-        Order.onSegmentComplete += RollRarity;
-        Order.onSegmentComplete += DestroyStockOnComplete;
-        _isHovering = false;
-        _isStored = false;
-        _itemID = GameManager.nextItemIndex++;
-    }
 
     private void Start()
     {
-        RollRarity();
+        Order.onSegmentComplete += RollRarity;
+        Order.onSegmentComplete += DestroyStockOnComplete;
+        _isHovering = false;
+        _itemID = GameManager.nextItemIndex++;
+        _itemRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
     }
 
-    // Make sure the proper item is getting re-rolled
+    private void OnDestroy()
+    {
+        Order.onSegmentComplete -= RollRarity;
+        Order.onSegmentComplete -= DestroyStockOnComplete;
+    }
+
+    // Make sure the proper item is getting re-rolled (called by onSegmentComplete event)
     private void RollRarity(int completingItem)
     {
-        if(_isStored || completingItem != _itemID)
+        if(IsStored() || completingItem != _itemID)
             return;
         RollRarity();
     }
@@ -45,7 +45,7 @@ public class Item : MonoBehaviour
     // Re-Roll the rarity of the current item. Ignore if it is stored
     public void RollRarity()
     {
-        if(_isStored)
+        if(IsStored())
             return;
         /*
          * Rarity Chances:
@@ -70,7 +70,6 @@ public class Item : MonoBehaviour
             _type = GameManager.ItemType.SQUID;
         }
         // Change the sprite of the item based on the type
-        _itemRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
         _itemRenderer.sprite = GameManager.GetItemSprite(_type);
     }
     
@@ -79,6 +78,11 @@ public class Item : MonoBehaviour
     private void SetType(GameManager.ItemType type)
     {
         _type = type;
+        // Can occur when creating stored items
+        if (_itemRenderer == null)
+        {
+            _itemRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
+        }
         _itemRenderer.sprite = GameManager.GetItemSprite(_type);
     }
 
@@ -92,14 +96,10 @@ public class Item : MonoBehaviour
         return _itemID;
     }
 
-    private void SetStored(bool value)
-    {
-        _isStored = value;
-    }
-
+    // Base Items will be ids 0-3 all others will be stored items
     public bool IsStored()
     {
-        return _isStored;
+        return _itemID > 3;
     }
 
     // Highlight the item currently hovered by the mouse
@@ -150,7 +150,7 @@ public class Item : MonoBehaviour
             if (orderToSend == -1 || (orderToSend >= 0 && orderToSend < GameManager.MaxOrders))
             {
                 // Check if the player can afford the item, then process the order
-                if (MoneyManager.canAffordItem?.Invoke(_type) == true || _isStored)
+                if (MoneyManager.canAffordItem?.Invoke(_type) == true || IsStored())
                 {
                     onSegmentComplete?.Invoke(this, orderToSend);
                 }
@@ -172,7 +172,6 @@ public class Item : MonoBehaviour
                     // Re-roll the rarity of this item
                     Item stockItem = Instantiate(gameObject, stockHolder).GetComponent<Item>();
                     stockItem.SetType(_type);
-                    stockItem.SetStored(true);
                     RollRarity();
                     onStoreItem?.Invoke(_type);
                 }
@@ -183,7 +182,7 @@ public class Item : MonoBehaviour
     // Destroy the Item in the stock upon completing a segment
     private void DestroyStockOnComplete(int completingItem)
     {
-        if (_isStored && completingItem == _itemID)
+        if (IsStored() && completingItem == _itemID)
         {
             Destroy(gameObject);
         }
